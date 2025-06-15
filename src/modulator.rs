@@ -40,7 +40,7 @@ impl Modulator {
     pub fn new() -> Modulator {
         unsafe {
             Modulator {
-                c_fluid_mod: fluid_mod_new()
+                c_fluid_mod: new_fluid_mod()
             }
         }
     }
@@ -120,7 +120,7 @@ impl Modulator {
 impl Drop for Modulator {
     fn drop(&mut self) -> () {
         unsafe {
-            fluid_mod_delete(self.c_fluid_mod);
+            delete_fluid_mod(self.c_fluid_mod);
         }
     }
 }

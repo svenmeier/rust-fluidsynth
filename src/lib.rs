@@ -1,5 +1,12 @@
 extern crate libc;
 use std::ffi::{CString};
+#[allow(
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
+    improper_ctypes,
+    dead_code
+)]
 mod ffi;
 
 pub mod modulator;
@@ -10,7 +17,6 @@ pub mod midi;
 pub mod event;
 pub mod seq;
 pub mod voice;
-pub mod ramsfont;
 pub mod gen;
 pub mod log;
 pub mod sfont;

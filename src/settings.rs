@@ -5,16 +5,16 @@ use std::ffi::{CString, CStr};
 use std::mem::*;
 use std::str;
 use std::ptr;
-
+use fluid_ok_option;
 
 #[repr(C)]
 #[derive(PartialEq, Debug)]
 pub enum SettingsType {
     NoType = -1,
-    NumType, 
-    IntType, 
-    StrType,   
-    SetType, 
+    NumType,
+    IntType,
+    StrType,
+    SetType,
 }
 
 
@@ -24,9 +24,9 @@ pub struct Settings {
 
 impl Settings {
     pub fn new() -> Settings {
-        unsafe { 
+        unsafe {
             Settings {
-                c_fluid_settings: new_fluid_settings() 
+                c_fluid_settings: new_fluid_settings()
             }
         }
     }
@@ -38,17 +38,21 @@ impl Settings {
         }
     }
 
-    pub fn get_hints(&self, name: &str) -> i32 {
+    pub fn get_hints(&self, name: &str) -> Option<i32> {
         let name_str = CString::new(name).unwrap();
         unsafe {
-            fluid_settings_get_hints(self.to_raw(), name_str.as_ptr())
+            let pval= 0;
+            let res = fluid_settings_get_hints(self.to_raw(), name_str.as_ptr(), pval as *mut i32) as u32;
+
+            fluid_ok_option!(res, pval)
         }
     }
 
     pub fn is_realtime(&self, name: &str) -> bool {
         let name_str = CString::new(name).unwrap();
         unsafe {
-            fluid_settings_is_realtime(self.to_raw(), name_str.as_ptr()) != 0
+            // note: return is 1 instead of FLUID_OK
+            fluid_settings_is_realtime(self.to_raw(), name_str.as_ptr()) == 1
         }
     }
 
@@ -56,7 +60,7 @@ impl Settings {
         let name_str = CString::new(name).unwrap();
         let string_str = CString::new(string).unwrap();
         unsafe {
-            fluid_settings_setstr(self.c_fluid_settings, name_str.as_ptr(), string_str.as_ptr()) != 0
+            fluid_settings_setstr(self.c_fluid_settings, name_str.as_ptr(), string_str.as_ptr()) as u32 == FLUID_OK
         }
     }
 
@@ -89,14 +93,12 @@ impl Settings {
 
     pub fn getstr_default(&self, name: &str) -> Option<String> {
         unsafe {
-            let name_str = CString::new(name).unwrap();
-            let res = fluid_settings_getstr_default(self.c_fluid_settings, name_str.as_ptr());
+            let mut default_ptr: *mut c_char = ptr::null_mut();
 
-            if res.is_null() {
-                None
-            } else {
-                Some(str::from_utf8(CStr::from_ptr(res).to_bytes()).unwrap().to_string())
-            }
+            let name_str = CString::new(name).unwrap();
+            let res = fluid_settings_getstr_default(self.c_fluid_settings, name_str.as_ptr(), &mut default_ptr as *mut _);
+
+            fluid_ok_option!(res, CStr::from_ptr(default_ptr).to_string_lossy().into_owned())
         }
     }
 
@@ -104,14 +106,15 @@ impl Settings {
         let name_str = CString::new(name).unwrap();
         let value_str = CString::new(value).unwrap();
         unsafe {
-            fluid_settings_str_equal(self.to_raw(), name_str.as_ptr(), value_str.as_ptr()) != 0
+            // note: return is 1 instead of FLUID_OK
+            fluid_settings_str_equal(self.to_raw(), name_str.as_ptr(), value_str.as_ptr()) == 1
         }
     }
 
     pub fn setnum(&self, name: &str, value: f64) -> bool {
         let name_str = CString::new(name).unwrap();
         unsafe {
-            fluid_settings_setnum(self.c_fluid_settings, name_str.as_ptr(), value as c_double) != 0
+            fluid_settings_setnum(self.c_fluid_settings, name_str.as_ptr(), value as c_double) as u32 == FLUID_OK
         }
     }
 
@@ -121,22 +124,17 @@ impl Settings {
         unsafe {
             let res = fluid_settings_getnum(self.to_raw(), name_str.as_ptr(), &mut value);
 
-            match res {
-                1 => Some(value),
-                _ => None
-            }
+            fluid_ok_option!(res, value)
         }
     }
 
     pub fn getnum_default(&self, name: &str) -> Option<f64> {
+        let mut default_num: f64 = 0.0;
         let name_str = CString::new(name).unwrap();
         unsafe {
-            let res: f64 = fluid_settings_getnum_default(self.to_raw(), name_str.as_ptr());
+            let res = fluid_settings_getnum_default(self.to_raw(), name_str.as_ptr(), &mut default_num as *mut f64);
 
-            match res {
-                0.0 => None,
-                _ => Some(res)
-            }
+            fluid_ok_option!(res, default_num)
         }
     }
 
@@ -152,14 +150,14 @@ impl Settings {
 
             fluid_settings_getnum_range(self.to_raw(), name_str.as_ptr(), &mut min, &mut max);
 
-            Some((min, max))    
+            Some((min, max))
         }
     }
 
     pub fn setint(&self, name: &str, value: i32) -> bool {
         let name_str = CString::new(name).unwrap();
         unsafe {
-            fluid_settings_setint(self.c_fluid_settings, name_str.as_ptr(), value as c_int) != 0
+            fluid_settings_setint(self.c_fluid_settings, name_str.as_ptr(), value as c_int) as u32 == FLUID_OK
         }
     }
 
@@ -169,22 +167,17 @@ impl Settings {
         unsafe {
             let res = fluid_settings_getint(self.to_raw(), name_str.as_ptr(), &mut value);
 
-            match res {
-                1 => Some(value),
-                _ => None
-            }
+            fluid_ok_option!(res, value)
         }
     }
 
     pub fn getint_default(&self, name: &str) -> Option<i32> {
+        let mut default_int: i32 = 0;
         let name_str = CString::new(name).unwrap();
         unsafe {
-            let res: i32 = fluid_settings_getint_default(self.to_raw(), name_str.as_ptr());
+            let res = fluid_settings_getint_default(self.to_raw(), name_str.as_ptr(), &mut default_int as *mut i32);
 
-            match res {
-                0 => None,
-                _ => Some(res)
-            }
+            fluid_ok_option!(res, default_int)
         }
     }
 
@@ -200,7 +193,7 @@ impl Settings {
 
             fluid_settings_getint_range(self.to_raw(), name_str.as_ptr(), &mut min, &mut max);
 
-            Some((min, max))    
+            Some((min, max))
         }
     }
 
@@ -208,11 +201,11 @@ impl Settings {
         let user_data = &callback as *const _ as *mut c_void;
         let name_str = CString::new(name).unwrap();
         unsafe {
-            fluid_settings_foreach_option(self.to_raw(), name_str.as_ptr(), user_data, foreach_option_callback_wrapper::<T>);  
+            fluid_settings_foreach_option(self.to_raw(), name_str.as_ptr(), user_data, Some(foreach_option_callback_wrapper::<T>));
         }
 
-        extern fn foreach_option_callback_wrapper<T>(closure: *mut c_void, name: *const c_char, option: *const c_char)
-            where T: Fn(&str, &str) {
+        unsafe extern "C" fn foreach_option_callback_wrapper<T>(closure: *mut c_void, name: *const c_char, option: *const c_char)
+        where T: Fn(&str, &str) {
             let closure = closure as *mut T;
 
             unsafe {
@@ -224,19 +217,19 @@ impl Settings {
         }
     }
 
-    pub fn option_count(&self, name: &str) -> Option<(i32)> {
+    pub fn option_count(&self, name: &str) -> Option<i32> {
         let name_str = CString::new(name).unwrap();
         unsafe {
-            let res = fluid_settings_option_count(self.to_raw(), name_str.as_ptr());
+            let count = fluid_settings_option_count(self.to_raw(), name_str.as_ptr());
 
-            match res {
+            match count {
                 -1 => None,
-                _ => Some(res)
-            }   
+                _ => Some(count)
+            }
         }
     }
 
-    pub fn option_concat(&self, name: &str, separator: &str) -> Option<(&str)> {
+    pub fn option_concat(&self, name: &str, separator: &str) -> Option<&str> {
         let name_str = CString::new(name).unwrap();
         let separator_str = CString::new(separator).unwrap();
 
@@ -247,7 +240,7 @@ impl Settings {
                 None
             } else {
                 Some(str::from_utf8(CStr::from_ptr(res).to_bytes()).unwrap())
-            }  
+            }
         }
     }
 
@@ -255,11 +248,11 @@ impl Settings {
         unsafe {
             let user_data = &callback as *const _ as *mut c_void;
 
-            fluid_settings_foreach(self.to_raw(), user_data, foreach_callback_wrapper::<T>);  
+            fluid_settings_foreach(self.to_raw(), user_data, Some(foreach_callback_wrapper::<T>));
         }
 
-        extern fn foreach_callback_wrapper<T>(closure: *mut c_void, name: *const c_char, setting_type: c_int)
-            where T: Fn(&str, SettingsType) {
+        unsafe extern "C" fn foreach_callback_wrapper<T>(closure: *mut c_void, name: *const c_char, setting_type: c_int)
+        where T: Fn(&str, SettingsType) {
             let closure = closure as *mut T;
 
             unsafe {
@@ -288,6 +281,3 @@ impl Drop for Settings {
         }
     }
 }
-
-
-

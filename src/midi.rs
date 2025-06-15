@@ -1,9 +1,8 @@
 extern crate libc;
 use libc::{c_void, c_int, c_float};
-use std::ffi::{CString, CStr};
+use std::ffi::CString;
 use ffi::*;
 use settings::*;
-use event::*;
 use synth::Synth;
 use std::mem::*;
 
@@ -16,14 +15,14 @@ impl MidiRouter {
     pub fn new<T: Fn(MidiEvent) -> i32>(settings: &mut Settings, callback: T) -> MidiRouter {
         unsafe {
             let user_data = &callback as *const _ as *mut c_void;
-            let router = new_fluid_midi_router(settings.to_raw(), midi_router_callback_wrapper::<T>, user_data);
+            let router = new_fluid_midi_router(settings.to_raw(), Some(midi_router_callback_wrapper::<T>), user_data);
 
             return MidiRouter {
                 c_fluid_midi_router: router
             }
         }
 
-        fn midi_router_callback_wrapper<T>(closure: *mut c_void, event: *mut fluid_midi_event_t) -> i32
+        unsafe extern "C" fn midi_router_callback_wrapper<T>(closure: *mut c_void, event: *mut fluid_midi_event_t) -> i32
             where T: Fn(MidiEvent) -> i32 {
             let closure = closure as *mut T;
 
@@ -40,14 +39,14 @@ impl MidiRouter {
     }
 
     pub fn clear_rules(&self) -> i32 {
-        unsafe { 
-            fluid_midi_router_clear_rules(self.to_raw()) 
+        unsafe {
+            fluid_midi_router_clear_rules(self.to_raw())
         }
     }
 
     pub fn add_rule(&self, rule: &mut MidiRouterRule, rule_type: MidiRouterRuleType) -> i32 {
-        unsafe { 
-            fluid_midi_router_add_rule(self.to_raw(), rule.to_raw(), rule_type as c_int) 
+        unsafe {
+            fluid_midi_router_add_rule(self.to_raw(), rule.to_raw(), rule_type as c_int)
         }
     }
 
@@ -148,14 +147,14 @@ impl MidiDriver {
     pub fn new<T: Fn(MidiEvent) -> i32>(settings: &mut Settings, callback: T) -> MidiDriver {
         unsafe {
             let user_data = &callback as *const _ as *mut c_void;
-            let router = new_fluid_midi_driver(settings.to_raw(), midi_driver_callback_wrapper::<T>, user_data);
+            let router = new_fluid_midi_driver(settings.to_raw(), Some(midi_driver_callback_wrapper::<T>), user_data);
 
             return MidiDriver {
                 c_fluid_midi_driver: router
             }
         }
 
-        fn midi_driver_callback_wrapper<T>(closure: *mut c_void, event: *mut fluid_midi_event_t) -> i32
+        unsafe extern "C" fn midi_driver_callback_wrapper<T>(closure: *mut c_void, event: *mut fluid_midi_event_t) -> i32
             where T: Fn(MidiEvent) -> i32 {
             let closure = closure as *mut T;
 

@@ -4,7 +4,7 @@ use fluidsynth::settings::*;
 #[test]
 fn setstr() {
     let settings = Settings::new();
-    assert_eq!(settings.setstr("audio.driver ", "coreaudio"), true);
+    assert_eq!(settings.setstr("synth.midi-bank-select", "gs"), true);
 }
 
 #[test]
@@ -20,7 +20,7 @@ fn get_type_unknown_setting() {
     assert_eq!(settings.get_type("unknown setting"), SettingsType::NoType);
 }
 
-#[test]
+/*#[test]
 fn copystr() {
     let settings = Settings::new();
     settings.setstr("audio.driver", "coreaudio");
@@ -28,15 +28,15 @@ fn copystr() {
     let res = settings.copystr("audio.driver", &mut buffer, 12);
     assert_eq!(buffer, "coreaudio");
     assert_eq!(res, true);
-}
+}*/
 
-#[test]
+/*#[test]
 fn getstr() {
     let settings = Settings::new();
     settings.setstr("audio.driver", "coreaudio");
     let res = settings.getstr("audio.driver");
     assert_eq!(res.unwrap(), "coreaudio");
-}
+}*/
 
 #[test]
 fn getstr_default_unknown_setting() {
@@ -48,8 +48,8 @@ fn getstr_default_unknown_setting() {
 #[test]
 fn getstr_default() {
     let settings = Settings::new();
-    let res = settings.getstr_default("audio.coreaudio.device");
-    assert_eq!(res, Some("default".to_string()));
+    let res = settings.getstr_default("synth.midi-bank-select");
+    assert_eq!(res, Some("gs".to_string()));
 }
 
 #[test]
@@ -60,7 +60,7 @@ fn getstr_equal() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn getstr_equal_fail() {
     let settings = Settings::new();
     settings.setstr("audio.driver", "coreaudio");

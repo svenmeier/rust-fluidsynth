@@ -56,10 +56,10 @@ impl Sequencer {
             let user_data = &callback as *const _ as *mut c_void;
             
             return fluid_sequencer_register_client(self.c_fluid_sequencer, name_str.as_ptr(), 
-                                                   event_callback_wrapper::<T>, user_data) as i16
+                                                   Some(event_callback_wrapper::<T>), user_data) as i16
         }
 
-        fn event_callback_wrapper<T>(closure: *mut c_void, time: c_uint, event: *mut fluid_event_t, seq: *mut fluid_sequencer_t)
+        unsafe extern "C" fn event_callback_wrapper<T>(time: c_uint, event: *mut fluid_event_t, seq: *mut fluid_sequencer_t, closure: *mut c_void)
             where T: Fn(u32, Event, Sequencer) {
             let closure = closure as *mut T;
 
@@ -89,7 +89,7 @@ impl Sequencer {
 
     pub fn get_client_name(&self, index: i32) -> &str {
         unsafe {
-            let raw_name = fluid_sequencer_get_client_name(self.to_raw(), index as i32);
+            let raw_name = fluid_sequencer_get_client_name(self.to_raw(), index as c_short);
             let slice = CStr::from_ptr(raw_name);
             str::from_utf8(slice.to_bytes()).unwrap()
         }
@@ -97,7 +97,7 @@ impl Sequencer {
 
     pub fn client_is_dest(&self, index: i32) -> bool {
         unsafe {
-            fluid_sequencer_client_is_dest(self.to_raw(), index as i32) != 0
+            fluid_sequencer_client_is_dest(self.to_raw(), index as c_short) != 0
         }
     }
 

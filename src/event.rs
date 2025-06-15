@@ -105,7 +105,7 @@ impl Event {
 
     pub fn program_change(&self, channel: i32, prog_num: i16) {
         unsafe {
-            fluid_event_program_change(self.to_raw(), channel as c_int, prog_num as c_short);
+            fluid_event_program_change(self.to_raw(), channel as c_int, prog_num as c_int);
         }
     }
 
@@ -117,7 +117,7 @@ impl Event {
 
     pub fn control_change(&self, channel: i32, control: i16, val: i16) {
         unsafe {
-            fluid_event_control_change(self.to_raw(), channel as c_int, control as c_short, val as c_short);
+            fluid_event_control_change(self.to_raw(), channel as c_int, control as c_short, val as c_int);
         }
     }
 
@@ -129,61 +129,55 @@ impl Event {
 
     pub fn pitch_wheelsens(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_pitch_wheelsens(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_pitch_wheelsens(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn pitch_modulation(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_modulation(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_modulation(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn sustain(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_sustain(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_sustain(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn pan(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_pan(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_pan(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn volume(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_volume(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_volume(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn reverb_send(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_reverb_send(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_reverb_send(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn chorus_send(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_chorus_send(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_chorus_send(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn channel_pressure(&self, channel: i32, value: i16) {
         unsafe {
-            fluid_event_channel_pressure(self.to_raw(), channel as c_int, value as c_short);
+            fluid_event_channel_pressure(self.to_raw(), channel as c_int, value as c_int);
         }
     }
 
     pub fn system_reset(&self) {
         unsafe {
             fluid_event_system_reset(self.to_raw());
-        }
-    }
-
-    pub fn any_control_change(&self, channel: i32) {
-        unsafe {
-            fluid_event_any_control_change(self.to_raw(), channel as c_int);
         }
     }
 
@@ -235,13 +229,13 @@ impl Event {
         }
     }
 
-    pub fn get_value(&self) -> i16 {
+    pub fn get_value(&self) -> i32 {
         unsafe {
             fluid_event_get_value(self.to_raw())
         }
     }
 
-    pub fn get_program(&self) -> i16 {
+    pub fn get_program(&self) -> i32 {
         unsafe {
             fluid_event_get_program(self.to_raw())
         }

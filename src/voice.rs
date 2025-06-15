@@ -1,6 +1,4 @@
 extern crate libc;
-use ffi::*;
-
 
 #[repr(C)]
 #[derive(PartialEq, Debug)]
